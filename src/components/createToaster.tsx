@@ -106,9 +106,9 @@ function first() {
 		) {
 			const [local, others] = splitProps(props, ["children", "ref"]);
 			const [offsetDiff, setOffsetDiff] = createSignal(0);
-			let duration = 4000;
-			let enter_duration = 1000;
-			let leave_duration = 1500;
+			let duration = props.duration ?? 2000;
+			let enter_duration = 100;
+			let leave_duration = 150;
 			const [vertical, horizontal] =
 				(others.position?.split("-") as ["top" | "bottom", "left" | "center" | "right"]) ??
 				(["top", "center"] as ["top" | "bottom", "left" | "center" | "right"]);

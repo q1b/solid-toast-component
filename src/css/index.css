@@ -5,14 +5,14 @@
 .gui-toast-group {
   position: fixed;
   z-index: 1;
-  inset-block-end: 0;
+
+  /* INSET BLOCK START TO MAKE TOAST TOP */
+  /* inset-block-start: 0; */
+  /* INSET BLOCK END TO MAKE TOAST BOTTOM */
+  /* inset-block-end: 0; */
+
   inset-inline: 0;
   padding-block-end: 5vh;
-
-  display: grid;
-  justify-items: center;
-  justify-content: center;
-  gap: 1vh;
 
   /* optimizations */
   pointer-events: none;
@@ -33,13 +33,6 @@
   border-radius: 3px;
   font-size: 1rem;
 
-  will-change: transform;
-  
-  animation: 
-    fade-in .3s ease,
-    slide-in .3s ease,
-    fade-out .3s ease var(--_duration);
-
   @media (--dark) {
     color: white;
     --_bg-lightness: 20%;
@@ -48,16 +41,4 @@
   @media (--motionOK) {
     --_travel-distance: 5vh;
   }
-}
-
-@keyframes fade-in {
-  from { opacity: 0 }
-}
-
-@keyframes fade-out {
-  to { opacity: 0 }
-}
-
-@keyframes slide-in {
-  from { transform: translateY(var(--_travel-distance, 10px)) }
 }

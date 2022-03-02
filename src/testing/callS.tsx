@@ -106,9 +106,9 @@ function first() {
 		) {
 			const [local, others] = splitProps(props, ["children", "ref"]);
 			const [offsetDiff, setOffsetDiff] = createSignal(0);
-			let duration = 4000;
-			let enter_duration = 1000;
-			let leave_duration = 1500;
+			let duration = 2000;
+			let enter_duration = 400;
+			let leave_duration = 700;
 			const [vertical, horizontal] =
 				(others.position?.split("-") as ["top" | "bottom", "left" | "center" | "right"]) ??
 				(["top", "center"] as ["top" | "bottom", "left" | "center" | "right"]);
@@ -186,11 +186,12 @@ function first() {
 						animateTo(
 							last,
 							{
-								opacity: ["0", "1"],
-								transform: ["scale(2)", "scale(1)"],
+								opacity: ["0","1"],
+								transform: ["scale(2)","scale(1)"],
 							},
 							{
 								duration: enter_duration,
+								easing:'cubic-bezier(.5, -.3, .1, 1.5)',
 								endDelay: duration,
 							}
 						);
@@ -204,6 +205,7 @@ function first() {
 								},
 								{
 									duration: leave_duration,
+									easing:"cubic-bezier(.5, -.5, .1, 1.5)",
 								}
 							);
 							if (insetPosition === "start") {

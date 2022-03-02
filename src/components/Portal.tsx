@@ -27,7 +27,6 @@ export function InsertBeforeBody(props: { children: JSX.Element }) {
 		insert(container, renderPortal());
 		mount.before(container);
 		(props as any).ref && (props as any).ref(container);
-		console.log(props);
 		onCleanup(() => document.documentElement.removeChild(container));
 	return marker;
 }

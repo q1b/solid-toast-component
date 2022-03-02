@@ -9,7 +9,7 @@ export const Toast = (props:PropsWithChildren<ComponentProps<'output'>>) => {
 			ref={local.ref}
 			{...others}
 		>
-			{children(() => local.children)()}
+			{/*@once*/local.children}
 		</output>
 	)
 }
