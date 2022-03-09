@@ -2,22 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.gui-toast-group {
-  position: fixed;
-  z-index: 1;
-
-  /* INSET BLOCK START TO MAKE TOAST TOP */
-  /* inset-block-start: 0; */
-  /* INSET BLOCK END TO MAKE TOAST BOTTOM */
-  /* inset-block-end: 0; */
-
-  inset-inline: 0;
-  padding-block-end: 5vh;
-
-  /* optimizations */
-  pointer-events: none;
-}
-
 .gui-toast {
   --_duration: 3s;
   --_bg-lightness: 90%;

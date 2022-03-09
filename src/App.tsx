@@ -1,133 +1,66 @@
 import { Component, createSignal } from "solid-js";
 import { Toast } from "./components/Toast";
-import TOASTER from "./components/createToaster";
-import SpeToaster from "./testing/callS";
+import TOASTER from "./components/createSpeToaster";
 
 const App: Component = () => {
-	let [count, setCount] = createSignal(0);
-	let { toast, Toaster } = TOASTER();
-	let { ...A } = TOASTER();
-	let { ...B } = SpeToaster();
-	let { ...C } = TOASTER();
-	let { ...D } = TOASTER();
-	let { ...E } = TOASTER();
+	let { toast, Toaster,} = TOASTER({
+		duration:{
+			forEntering:600,
+			forWaiting:2000,
+			forLeaving:600,
+		},
+	});
+	let A = TOASTER({
+		duration:{
+			forEntering:600,
+			forWaiting:2000,
+			forLeaving:600,
+		},
+	});
 	return (
 		<section class="min-h-screen w-full flex items-center justify-center bg-slate-900">
-			<article class="grid grid-cols-3 gap-10">
-				<button
-					class="bg-white px-2 py-1 rounded-md"
-					onClick={() =>
-						toast(<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">LEFT-TOP</Toast>)
-					}>
-					LEFT-TOP
-				</button>
-				<button
-					class="bg-white px-2 py-1 rounded-md"
-					onClick={() =>
-						A.toast(
-							<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">
-								CENTER-TOP
-							</Toast>
-						)
-					}>
-					CENTER-TOP
-				</button>
-				<button
-					class="bg-white px-2 py-1 rounded-md"
-					onClick={() =>
-						B.toast(
-							<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">
-								RIGHT-TOP
-							</Toast>
-						)
-					}>
-					RIGHT-TOP
-				</button>
+			<article class="grid grid-cols-1 gap-10">
 				<button
 					class="bg-white px-2 py-1 rounded-md"
 					onClick={() => {
 						toast(
 							<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">
-								LEFT
+								<h1 class="max-w-md">
+									Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dolorem, quo.
+								</h1>
 							</Toast>
-						);
-						E.toast(
-							<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">
-								LEFT
-							</Toast>
+							,{
+								onEnter:{
+									transform:['scaleX(0)','scaleX(1)'],
+									opacity:[0,1]
+								}
+							}
 						);
 					}}>
-					LEFT
+					center Top
 				</button>
 				<button
 					class="bg-white px-2 py-1 rounded-md"
 					onClick={() => {
-						setCount(count() + 1);
-						toast(<Toast class="gui-toast">Nice {/*@once*/ count()} world I love this</Toast>);
-						A.toast(<Toast class="gui-toast"> Nice {/*@once*/ count()} </Toast>);
-						B.toast(<Toast class="gui-toast"> Nice {/*@once*/ count()} </Toast>);
-						C.toast(<Toast class="gui-toast"> Nice {/*@once*/ count()} </Toast>);
-						D.toast(<Toast class="gui-toast"> Nice {/*@once*/ count()} </Toast>);
-						E.toast(<Toast class="gui-toast"> Nice {/*@once*/ count()} </Toast>);
-					}}>
-					ALL AT ONCE
-				</button>
-				<button
-					class="bg-white px-2 py-1 rounded-md"
-					onClick={() => {
-						B.toast(
+						A.toast(
 							<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">
-								RIGHT
+								<h1 class="max-w-md">
+									Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dolorem, quo.
+								</h1>
 							</Toast>
-						);
-						C.toast(
-							<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">
-								RIGHT
-							</Toast>
+							,{
+								onEnter:{
+									transform:['scaleX(0)','scaleX(1)'],
+									opacity:[0,1]
+								}
+							}
 						);
 					}}>
-					RIGHT
-				</button>
-				<button
-					class="bg-white px-2 py-1 rounded-md"
-					onClick={() => {
-						E.toast(
-							<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">
-								LEFT-BOTTOM
-							</Toast>
-						);
-					}}>
-					LEFT-BOTTOM
-				</button>
-				<button
-					class="bg-white px-2 py-1 rounded-md"
-					onClick={() => {
-						D.toast(
-							<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">
-								CENTER-BOTTOM
-							</Toast>
-						);
-					}}>
-					CENTER-Bottom
-				</button>
-				<button
-					class="bg-white px-2 py-1 rounded-md"
-					onClick={() => {
-						C.toast(
-							<Toast class="bg-white shadow-xl shadow-white text-cyan-400 font-semibold italic px-3 py-0.5 rounded-lg">
-								RIGHT-BOTTOM
-							</Toast>
-						);
-					}}>
-					RIGHT-BOTTOM
+					center Bottom
 				</button>
 			</article>
-			<Toaster duration={1000} position="top-left" />
-			<A.Toaster duration={1000} position="top-center" />
-			<B.Toaster duration={1000} position="top-right" />
-			<C.Toaster duration={1000} position="bottom-right" />
-			<D.Toaster duration={1000} position="bottom-center" />
-			<E.Toaster duration={1000} position="bottom-left" />
+			<Toaster position="top-center" />
+			<A.Toaster position="bottom-center" />
 		</section>
 	);
 };

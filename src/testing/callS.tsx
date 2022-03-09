@@ -6,12 +6,11 @@ import {
 	createUniqueId,
 	on,
 	PropsWithChildren,
-	For,
 	JSX,
-	createMemo,
 	createRoot,
 	mapArray,
 } from "solid-js";
+
 import { InsertBeforeBody } from "../components/Portal";
 import { Toast } from "../components/Toast";
 import { render, insert } from "solid-js/web";
@@ -72,6 +71,7 @@ function first() {
 				if (typeof recevied === "string") return recevied;
 				return "NO_TEXT";
 			}
+			console.log("Rinnin")
 			let text = extractText();
 			if (text === "NO_TEXT") {
 				setSource((c) => [

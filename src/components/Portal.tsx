@@ -1,11 +1,5 @@
 import { insert } from "solid-js/web";
-import { createSignal, onCleanup, JSX, createRoot, sharedConfig } from "solid-js";
-
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-
-function createElement(tagName: string, isSVG = false): HTMLElement | SVGElement {
-	return isSVG ? document.createElementNS(SVG_NAMESPACE, tagName) : document.createElement(tagName);
-}
+import { createSignal, onCleanup, JSX, sharedConfig } from "solid-js";
 
 export function InsertBeforeBody(props: { children: JSX.Element }) {	
 	const marker = document.createTextNode("")
@@ -18,7 +12,7 @@ export function InsertBeforeBody(props: { children: JSX.Element }) {
 			return () => s() && props.children;
 		} else return () => props.children;
 	}
-		const container = createElement("div");
+		const container = document.createElement("div");
 		Object.defineProperty(container, "host", {
 			get() {
 				return marker.parentNode;

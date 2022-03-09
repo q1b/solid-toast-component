@@ -1,4 +1,4 @@
-import { children, splitProps,ComponentProps,PropsWithChildren } from "solid-js";
+import { splitProps,ComponentProps,PropsWithChildren } from "solid-js";
 
 export const Toast = (props:PropsWithChildren<ComponentProps<'output'>>) => {
 	const [local, others] = splitProps(props, ["children", "ref"]);

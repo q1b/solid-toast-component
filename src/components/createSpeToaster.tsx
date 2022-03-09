@@ -6,15 +6,17 @@ import {
 	createUniqueId,
 	on,
 	PropsWithChildren,
-	For,
 	JSX,
-	createMemo,
 	createRoot,
 	mapArray,
+	sharedConfig,
+	onCleanup,
 } from "solid-js";
-import { InsertBeforeBody } from "../components/Portal";
+
 import { Toast } from "../components/Toast";
-import { render, insert } from "solid-js/web";
+import { insert } from "solid-js/web";
+
+const sleep = (ms = 2000) => new Promise((r) => setTimeout(r, ms));
 
 function animateTo(element: HTMLElement, keyframes: PropertyIndexedKeyframes, options: KeyframeAnimationOptions, onfinish?: any) {
 	const anim = element.animate(keyframes, { ...options, fill: "both" });
@@ -25,23 +27,47 @@ function animateTo(element: HTMLElement, keyframes: PropertyIndexedKeyframes, op
 	return anim;
 }
 
-/* 
-After receiving the el from user we will add it to els, through setEls,
-[els,setEls represents JSX.Element send by the user but no reference in DOM yet,]
-then, providing the reference of parent element that is already there, we will append that, to that parent element
+type Easing = {
+	forEntering: string;
+	forLeaving: string;
+};
 
-get the mounted reference of that element set it to el as well add it to mountedEls,
-[mountedEls,setMountedEls Now these are mounted on DOM So, we can reference them as well, like animating.]
-[el,setEl  represents newly added,]
-Now we may want to remove mountedEls, So
-*/
+type Duration = {
+	forEntering: number;
+	forWaiting: number;
+	forLeaving: number;
+};
 
-/* State Manegement */
-/* Each element is recevied from toast function, then added to array of these toasts then those array updated after adding to DOM of component renderer and recevied again and removed after t dur */
+type Options = {
+	onEnter?: PropertyIndexedKeyframes;
+	onLeave?: PropertyIndexedKeyframes;
+	duration?: Duration;
+	easing?: Easing;
+};
 
-function first() {
+function first(options?: Options) {
 	const [source, setSource] = createSignal<{ id: string; text: string; el: JSX.Element | HTMLElement; offsetDif: number }[]>([]);
 	const [el, setEl] = createSignal<Element | null>();
+	let { onEnter, onLeave, duration, easing } = {
+		onEnter: options?.onEnter || {
+			opacity: ["0", "1"],
+			transform: ["scale(2)", "scale(1)"],
+		},
+		onLeave: options?.onLeave || {
+			opacity: ["1", "0"],
+			transform: ["scale(1)", "scale(0)"],
+		},
+		duration: options?.duration || {
+			forEntering: 300,
+			forWaiting: 900,
+			forLeaving: 400,
+		},
+		easing: options?.easing || {
+			forEntering: "cubic-bezier(.5, -.5, .1, 1.5)",
+			forLeaving: "cubic-bezier(.5, -.5, .1, 1.5)",
+		},
+	};
+
 	const mapped = mapArray(source, (model) => {
 		const [el, setEl] = createSignal(model.el);
 		const [text, setText] = createSignal(model.text);
@@ -64,10 +90,14 @@ function first() {
 			setOffsetDif,
 		};
 	});
+
 	return {
-		// handler
-		toast(recevied: string | JSX.Element) {
+		toast(recevied: string | JSX.Element, options?: Options): string {
 			let id = createUniqueId();
+			duration = { ...duration, ...options?.duration };
+			onEnter = { ...onEnter, ...options?.onEnter };
+			onLeave = { ...onLeave, ...options?.onLeave };
+			easing = { ...easing, ...options?.easing };
 			function extractText() {
 				if (typeof recevied === "string") return recevied;
 				return "NO_TEXT";
@@ -94,21 +124,18 @@ function first() {
 					},
 				]);
 			}
+			return id;
 		},
 		// component renderer
 		Toaster(
 			props: PropsWithChildren<{
 				position: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
-				duration: number;
 				children?: JSX.Element;
 				ref?: HTMLElement | ((el: HTMLElement) => void) | undefined;
 			}>
 		) {
 			const [local, others] = splitProps(props, ["children", "ref"]);
 			const [offsetDiff, setOffsetDiff] = createSignal(0);
-			let duration = props.duration ?? 2000;
-			let enter_duration = 100;
-			let leave_duration = 150;
 			const [vertical, horizontal] =
 				(others.position?.split("-") as ["top" | "bottom", "left" | "center" | "right"]) ??
 				(["top", "center"] as ["top" | "bottom", "left" | "center" | "right"]);
@@ -128,6 +155,30 @@ function first() {
 					break;
 			}
 			let ToasterRef: HTMLElement;
+			const animExit = (last: HTMLElement): undefined | Animation => {
+				let animation;
+				animateTo(last, onLeave, {
+					duration: duration.forLeaving,
+					easing: easing.forLeaving,
+				});
+				if (insetPosition === "start") {
+					if (mapped().length !== 1) {
+						animation = ToasterRef.animate(
+							[
+								{
+									transform: `translateY(-${offsetDiff()}px)`,
+								},
+							],
+							{
+								duration: duration.forLeaving + 1,
+								easing: "ease-in",
+							}
+						);
+						animation.startTime = document.timeline.currentTime;
+					}
+				}
+				return animation;
+			};
 			createEffect(
 				on(
 					source,
@@ -183,52 +234,19 @@ function first() {
 					const last = el();
 					let animation: Animation | undefined;
 					if (last instanceof HTMLElement) {
-						animateTo(
-							last,
-							{
-								opacity: ["0", "1"],
-								transform: ["scale(2)", "scale(1)"],
-							},
-							{
-								duration: enter_duration,
-								endDelay: duration,
-							}
-						);
+						animateTo(last, onEnter, {
+							duration: duration.forEntering,
+							easing: easing.forEntering,
+							endDelay: duration.forWaiting,
+						});
 						// after duration+enter_duration
-						setTimeout(() => {
-							let lastout = animateTo(
-								last,
-								{
-									opacity: ["1", "0"],
-									transform: ["scale(1)", "scale(0)"],
-								},
-								{
-									duration: leave_duration,
-								}
-							);
-							if (insetPosition === "start") {
-								if (mapped().length !== 1) {
-									animation = ToasterRef.animate(
-										[
-											{
-												transform: `translateY(-${offsetDiff()}px)`,
-											},
-										],
-										{
-											duration: leave_duration + 1,
-											easing: "ease-in",
-										}
-									);
-									animation.startTime = document.timeline.currentTime;
-								}
-							}
-							// console.time("Here");
-							// setTimeout(() => {
-							// 	console.timeEnd("Here")
-							// 	animation?.cancel();
-							// 	lastout?.cancel();
-							// }, 500);
-						}, enter_duration + duration - leave_duration + 100);
+						new Promise<void>(async (resolve, reject) => {
+							let escapeDuration = duration.forEntering + duration.forWaiting - duration.forLeaving;
+							await sleep(escapeDuration + 100);
+							resolve();
+						}).then(() => {
+							animation = animExit(last);
+						});
 						new Promise<void>(async (resolve, reject) => {
 							await Promise.allSettled(last.getAnimations().map((animation) => animation.finished));
 							if (animation) await animation?.finished;
@@ -248,27 +266,66 @@ function first() {
 				})
 			);
 			return (
-				<InsertBeforeBody>
-					<section
-						role="status"
-						aria-live="polite"
-						class="gui-toast-group"
-						style={`
-					      inset-block-${insetPosition}:0px;
-					      display: grid;
-  				      justify-items: center;
-  				      justify-content:${horizontalPropValue};
-  				      gap: 1vh;
-				    `}
-						ref={(el) => {
-							ToasterRef = el;
-							local.ref = el;
-						}}
-						{...others}></section>
-				</InsertBeforeBody>
+				<PortalSection
+					insetPosition={insetPosition}
+					horizontalPropValue={horizontalPropValue}
+					ref={(el: HTMLElement) => {
+						ToasterRef = el;
+					}}></PortalSection>
 			);
 		},
 	};
 }
 
-export default createRoot(() => first);
+export function PortalSection(props: {
+	insetPosition: "start" | "end";
+	horizontalPropValue: "start" | "end" | "center";
+	children?: JSX.Element;
+}) {
+	const marker = document.createTextNode("");
+	const mount = document.body;
+	// don't render when hydrating
+	function renderPortal() {
+		if (sharedConfig.context) {
+			const [s, set] = createSignal(false);
+			queueMicrotask(() => set(true));
+			return () => s() && props.children;
+		} else return () => props.children;
+	}
+	const container = document.createElement("section");
+	container.setAttribute("role", "status");
+	container.setAttribute("aria-live", "polite");
+	container.setAttribute(
+		"style",
+		`
+		position: fixed;
+  		z-index: 1;
+		inset-inline: 0;
+  		padding-block-end: 5vh;
+		inset-block-${props.insetPosition}:0px;
+		display: grid;
+  		justify-items: center;
+  		justify-content:${props.horizontalPropValue};
+		gap: 1vh;
+		/* optimizations */
+  		pointer-events: none;`
+	);
+	Object.defineProperty(container, "host", {
+		get() {
+			return marker.parentNode;
+		},
+	});
+	insert(container, renderPortal());
+	mount.before(container);
+	(props as any).ref && (props as any).ref(container);
+	onCleanup(() => document.documentElement.removeChild(container));
+	return marker;
+}
+
+export default createRoot(() => {
+	return (
+		options?: Options
+	) => {
+		return first(options);
+	};
+});
